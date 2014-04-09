@@ -115,10 +115,12 @@ switch ($action) {
     break;
 
   case 'showAddCategory':
+    $title = "Add a Category";
     include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/addCategory.php';
     break;
 
   case 'showAddCoin':
+    $title = "Add a Coin";
     $catID = $_POST['catID'];
     include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/addCoin.php';
     break;

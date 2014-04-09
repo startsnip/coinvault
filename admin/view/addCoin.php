@@ -34,7 +34,7 @@
           <input type="text" name="imageLink" id="imageLink"value="<?php echo $coinImage; ?>" required>
         </label>
         <label for="year">
-          <span>Coin Image (URL):</span>
+          <span>Year:</span>
           <input type="text" name="year" id="year" value="<?php echo $year; ?>" required>
         </label>
         <label for="submit">
