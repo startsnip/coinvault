@@ -1,4 +1,15 @@
 # CoinVault
 Coin Collection Management Framework
 
-To play with the administration panel, use email admin@coinvault.com and password of password
+Feel free to create and account to view the catalog
+To access the administration panel, use the fake email address: admin@coinvault.com and the password: password
+
+### upcoming changes:
+
+* implement stronger controls in administration panel
+* update site-wide styles using bootstrap framework
+* remove initial "log-in" gateway and allow for guest browsing
+* implement user dashboard
+  * view collected coins
+  * view total collection details (total value, oldest coin, etc)
+  * add coin button in coin catalog
