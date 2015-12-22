@@ -2,9 +2,11 @@
 Coin Collection Management Framework
 
 Feel free to create and account to view the catalog
+
 To access the administration panel, use the following account information:
 
 Email: admin@coinvault.com
+
 password: password
 
 ### Upcoming Changes:
