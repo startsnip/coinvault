@@ -37,7 +37,7 @@
               <button type="submit">Promote User</button>
             </form>
             <?php } ?>
-            <?php if ($value[4] == 1) { ?>
+            <?php if ($value[4] == 1 && $value[1] != $_SESSION['email']) { ?>
             <form action="/admin/index.php" method="POST">
               <input type="hidden" name="action" value="demoteUser">
               <input type="hidden" name="email" value="<?php echo $value[1]; ?>">
@@ -46,11 +46,13 @@
             <?php } ?>
           </td>
           <td>
+            <?php if ($value[1] != $_SESSION['email']) { ?>
             <form action="/admin/index.php" method="POST">
               <input type="hidden" name="action" value="deleteUser">
               <input type="hidden" name="email" value="<?php echo $value[1]; ?>">
               <button type="submit">Delete User</button>
             </form>
+            <?php } ?>
           </td>
         </tr>
         <?php } ?>

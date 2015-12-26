@@ -1,8 +1,8 @@
 <?php
 
 function getConnection() {
-  $dsn = 'mysql:host=localhost;dbname=inaudib1_coinvault';
-  $username = 'inaudib1_iclient';
+  $dsn = 'mysql:host=localhost;dbname=tanichol_coinvault';
+  $username = 'tanichol_iclient';
   $password = 'rsWgbE4ufpyFGkeMntss4Zbjny';
 
   try {
