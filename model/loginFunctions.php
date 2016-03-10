@@ -1,20 +1,5 @@
 <?php
 
-function getConnection() {
-  $dsn = 'mysql:host=localhost;dbname=tanichol_coinvault';
-  $username = 'tanichol_iclient';
-  $password = 'rsWgbE4ufpyFGkeMntss4Zbjny';
-
-  try {
-    $db = new PDO($dsn, $username, $password);
-  } catch (PDOException $e) {
-    $error_message = $e->getMessage();
-    include('../errors/database_error.php');
-    exit();
-  }
-  return $db;
-}
-
 function getUser($email) {
   $conn = getConnection();
   
@@ -99,6 +84,37 @@ function getHash($email) {
 
 function userVerify($password, $hashedPassword) {
   return crypt($password, $hashedPassword) == $hashedPassword;
+}
+
+function changeDisplayName($newName, $email) {
+  $conn = getConnection();
+  
+  try {
+    $sql = "UPDATE users SET displayName=:newName WHERE email=:email";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':newName', $newName, PDO::PARAM_STR);
+    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+    $stmt->execute();
+    $stmt->closeCursor();
+  } catch (PDOException $ex) {
+    $errorMessage = $ex->getMessage();
+    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
+  }
+}
+function changePassword($email, $hash) {
+  $conn = getConnection();
+  
+  try {
+    $sql = "UPDATE users SET hash=:hash WHERE email=:email";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':hash', $hash, PDO::PARAM_STR);
+    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+    $stmt->execute();
+    $stmt->closeCursor();
+  } catch (PDOException $ex) {
+    $errorMessage = $ex->getMessage();
+    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
+  }
 }
 
 ?>

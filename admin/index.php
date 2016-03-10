@@ -1,14 +1,14 @@
 <?php
 
+require $_SERVER['DOCUMENT_ROOT'] . '/model/dashboardFunctions.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/model/adminFunctions.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/model/loginFunctions.php';
+
+$categories = getCategories();
 
 if (!is_array($_SESSION)) {
   session_set_cookie_params(60 * 60 * 24, '/');
   session_start();
-}
-
-if(!$_SESSION['isLoggedIn'] || !$_SESSION['isAdmin']) {
-  header('Location: /index.php');
 }
 
 if (isset($_GET['action'])) {
@@ -18,31 +18,105 @@ if (isset($_GET['action'])) {
 }
 
 switch ($action) {
-  case 'userAdmin':
-    $users = getUsers();
-    $title = "User Administration";
-    include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/userAdmin.php';
+  case 'login':
+
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $password = $_POST['password'];
+    $storeUser = isset($_POST['storeUser']);
+    $hash = getHash($email);
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      $errorMessage = "Please enter a valid email address";
+      include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/landing.php';
+      break;
+    }
+    
+    if (userVerify($password, $hash)) {
+      if ($storeUser) {
+        setcookie('email', $email, time() + (60*60*24*7*2));
+      }
+      
+      $_SESSION['email'] = $email;
+      $_SESSION['isLoggedIn'] = true;
+      
+      $user = getUser($email);
+  
+      $_SESSION['displayName'] = $user['displayName'];
+      $_SESSION['isAdmin'] = $user['isAdmin'];
+
+      header('Location: /index.php');
+      break;
+
+    } else {
+      $errorMessage = "Invalid login credentials, please try again.";
+      include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/landing.php';
+      break;
+    }
     break;
 
-  case 'promoteUser':
-    promoteUser($_POST['email']);
-    header("Location: /admin/index.php?action=userAdmin");
+  case 'logout':
+
+    $_SESSION = array();
+    session_destroy();
+    setcookie(session_name(), '', strtotime('-1 year'), $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    header('Location: /index.php');
     break;
 
-  case 'demoteUser':
-    demoteUser($_POST['email']);
-    header("Location: /admin/index.php?action=userAdmin");
+  case 'userSettings':
+    $title = "User Settings Panel";
+    include $_SERVER['DOCUMENT_ROOT'] . "/admin/view/settings.php";
     break;
 
-  case 'deleteUser':
-    deleteUser($_POST['email']);
-    header("Location: /admin/index.php?action=userAdmin");
+  case 'changeDisplayName':
+    changeDisplayName($_POST['newDisplayName'], $_SESSION['email']);
+    
+    $user = getUser($_SESSION['email']);
+    $_SESSION['displayName'] = $user['displayName'];
+    $_SESSION['isAdmin'] = $user['isAdmin'];
+
+
+    $errorMessage = "Name updated successfully!";
+    include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/settings.php';
+    // header('Location: /admin/index.php?action=userSettings');
     break;
 
-  case 'contentAdmin':
-    $categories = getCategories();
-    $title = "Content Administration";
-    include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/contentAdmin.php';
+  case 'changePassword':
+
+    $currentPassword = $_POST['currentPassword'];
+    $currentHash = getHash($_SESSION['email']);
+    $password = $_POST['newPassword'];
+    $passwordVerify = $_POST['newPasswordVerify'];
+
+    if (empty($currentPassword) || empty($password) || empty($passwordVerify)) {
+        $errorMessage = "All fields are required.";
+        include $_SERVER[ 'DOCUMENT_ROOT'] . '/admin/view/settings.php';
+        break;
+      }
+
+    if (userVerify($currentPassword, $currentHash)) {
+      //validate password
+      if (strcmp($password, $passwordVerify)) {
+        $errorMessage = "The passwords did not match, please try again.";
+        include $_SERVER[ 'DOCUMENT_ROOT'] . '/admin/view/settings.php';
+        break;
+      }
+
+      if (!preg_match('`[A-z]`', $password)) {
+        $errorMessage = "Password must contain at least one alphabetic character.";
+        include $_SERVER[ 'DOCUMENT_ROOT'] . '/admin/view/settings.php';
+        break;
+      }
+
+      if (strlen($password) < 8) {
+        $errorMessage = "The password must be at least 8 characters long, please try again.";
+        include $_SERVER[ 'DOCUMENT_ROOT'] . '/admin/view/settings.php';
+        break;
+      }
+
+      changePassword($_SESSION['email'], hashPassword($password));
+      $errorMessage = "Password updated successfully!";
+      include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/settings.php';
+    }
     break;
 
   case 'modifyCategory':
@@ -51,6 +125,7 @@ switch ($action) {
     $catName = $categoryDetails['catName'];
     $catDescription = $categoryDetails['catDescrption'];
     $catImage = $categoryDetails['imageFront'];
+    $activeTab = $_POST['activeTab'];
 
     $title = "Edit: " . $categoryDetails['catName'];
     include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/modifyCategory.php';
@@ -64,6 +139,7 @@ switch ($action) {
     $coinDescription = $coinDetails['coinDescription'];
     $coinImage = $coinDetails['coinImage'];
     $year = $coinDetails['year'];
+    $activeTab = $_POST['activeTab'];
 
     $title = "Edit: " . $coinDetails['coinName'];
     include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/modifyCoin.php'; // create page!
@@ -71,13 +147,14 @@ switch ($action) {
 
   case 'deleteCategory':
     deleteCategory($_POST['catID']);
-    header('Location: /admin/index.php?action=contentAdmin');
+    header('Location: /index.php');
     break;
 
   case 'deleteCoin':
     $catID = $_POST['catID'];
     deleteCoin($_POST['coinID']);
-    header("Location: /admin/index.php?action=showCoinList&catID=$catID");
+    $activeTab = $_POST['activeTab'];
+    header("Location: /dashboard/index.php?action=displayCoins&catID=$catID&activeTab=$activeTab");
     break;
 
   case 'commitCategoryModifications':
@@ -92,7 +169,7 @@ switch ($action) {
       include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/modifyCategory.php';
     } else {
       commitCategoryModifications($catName, $catDescription, $catImage, $catID);
-      header('Location: /admin/index.php?action=contentAdmin');
+      header("Location: /index.php");
     }
     break;
 
@@ -103,6 +180,7 @@ switch ($action) {
     $coinDescription = htmlspecialchars($_POST['coinDescription']);
     $coinImage = filter_var($_POST['imageLink'], FILTER_SANITIZE_URL);
     $year = $_POST['year'];
+    $activeTab = $_POST['activeTab'];
 
     if (!filter_var($coinImage, FILTER_VALIDATE_URL)) {
       $errorMessage = "Invalid image link URL";
@@ -110,7 +188,7 @@ switch ($action) {
       include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/modifyCoin.php';
     } else {
       commitCoinModifications($coinName, $coinDescription, $coinImage, $year, $coinID);
-      header("Location: /admin/index.php?action=showCoinList&catID=$catID");
+      header("Location: /dashboard/index.php?action=displayCoins&catID=$catID&activeTab=$activeTab");
     }
     break;
 
@@ -121,11 +199,20 @@ switch ($action) {
 
   case 'showAddCoin':
     $title = "Add a Coin";
-    $catID = $_POST['catID'];
+    if (isset($_GET['catID'])) {
+      $catID = $_GET['catID'];
+    } else if (isset($_POST['catID'])) {
+      $catID = $_POST['catID'];
+    }
+
+    $categoryDetails = getCategoryDetails($catID);
+    $catName = $categoryDetails['catName'];
+    $activeTab = $_POST['activeTab'];
+    
     include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/addCoin.php';
     break;
 
-  case "addCategory": 
+  case "addCategory":
     $catName = htmlspecialchars($_POST['catName']);
     $catDescription = htmlspecialchars($_POST['catDescription']);
     $catImage = filter_var($_POST['imageLink'], FILTER_SANITIZE_URL);
@@ -135,37 +222,51 @@ switch ($action) {
       include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/addCategory.php';
     } else {
       addCategory($catName, $catDescription, $catImage);
-      header('Location: /admin/index.php?action=contentAdmin');
+
+      $categories = getCategories();
+      $numCategories = count($categories, 0);
+      $catID = $categories[$numCategories-1][0];
+
+      if ($_POST['submitMore'] == 'true') {
+        header("Location: /admin/index.php?action=showAddCategory");
+      } else {
+        header("Location: /dashboard/index.php?action=displayCoins&catID=$catID&activeTab=$numCategories");
+      }
     }
     break;
 
-  case "addCoin": 
+  case "addCoin":
     $catID = $_POST['catID'];
     $coinName = htmlspecialchars($_POST['coinName']);
     $coinDescription = htmlspecialchars($_POST['coinDescription']);
     $year = $_POST['year'];
     $coinImage = filter_var($_POST['imageLink'], FILTER_SANITIZE_URL);
+    $activeTab = $_POST['activeTab'];
 
     if (!filter_var($coinImage, FILTER_VALIDATE_URL)) {
       $errorMessage = "Invalid image link URL";
       include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/addCoin.php';
     } else {
       addCoin($catID, $coinName, $coinDescription, $coinImage, $year);
-      header("Location: /admin/index.php?action=showCoinList&catID=$catID");
+
+      if ($_POST['submitMore'] == 'true') {
+        header("Location: /admin/index.php?action=showAddCoin&catID=$catID&activeTab=$activeTab");
+      } else {
+        header("Location: /dashboard/index.php?action=displayCoins&catID=$catID&activeTab=$activeTab");
+      }
     }
     break;
 
-  case 'showCoinList':
-    $catID = $_GET['catID'];
-    $coins = getCoins($_GET['catID']);
-    $title= "Category Listing - " . $catID;
-    include $_SERVER['DOCUMENT_ROOT'] . '/admin/view/categoryAdmin.php';
-    break;
-
   default:
-    $title = "Administration Panel";
-    include $_SERVER['DOCUMENT_ROOT'] . "/admin/view/admin.php";
-    break;
-}
+    $activeTab = 0;
 
+    if($_SESSION['isAdmin']) {
+      include $_SERVER['DOCUMENT_ROOT'] . "/index.php";
+      break;
+    } else {
+      $title = "Administration Login";
+      include $_SERVER['DOCUMENT_ROOT'] . "/admin/view/landing.php";
+      break;
+    }
+}
 ?>

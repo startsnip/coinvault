@@ -1,0 +1,20 @@
+html { overflow-y: scroll; }
+
+.error {
+  color: red;
+}
+
+body {
+	padding-top: 70px;
+}
+
+.vresize {
+  resize: vertical; 
+}
+
+/* Small devices (tablets, 768px and up) */
+@media screen and (min-width: 768px) {
+	body {
+		padding-bottom: 70px;
+	}
+}

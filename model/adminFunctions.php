@@ -1,84 +1,5 @@
 <?php
 
-function getConnection() {
-  $dsn = 'mysql:host=localhost;dbname=tanichol_coinvault';
-  $username = 'tanichol_iclient';
-  $password = 'rsWgbE4ufpyFGkeMntss4Zbjny';
-
-  try {
-    $db = new PDO($dsn, $username, $password);
-  } catch (PDOException $e) {
-    $errorMessage = $e->getMessage();
-    include("/errors/index.php");
-    exit();
-  }
-  return $db;
-}
-
-function getUsers() {
-  $conn = getConnection();
-  
-  try {
-    $sql = "SELECT * FROM users";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    $users = $stmt->fetchAll();
-    $stmt->closeCursor();
-  } catch (PDOException $ex) {
-    $errorMessage = $ex->getMessage();
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-  if (is_array($users)) {
-    return $users;
-  } else {
-    $errorMessage = "There are no categories to display.";
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-}
-
-function getCategories() {
-  $conn = getConnection();
-  
-  try {
-    $sql = "SELECT * FROM categories";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    $categories = $stmt->fetchAll();
-    $stmt->closeCursor();
-  } catch (PDOException $ex) {
-    $errorMessage = $ex->getMessage();
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-  if (is_array($categories)) {
-    return $categories;
-  } else {
-    $errorMessage = "There are no categories to display.";
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-}
-
-function getCoins($catID) {
-  $conn = getConnection();
-  
-  try {
-    $sql = "SELECT * FROM coins WHERE catID=:catID";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':catID', $catID, PDO::PARAM_INT);
-    $stmt->execute();
-    $coins = $stmt->fetchAll();
-    $stmt->closeCursor();
-  } catch (PDOException $ex) {
-    $errorMessage = $ex->getMessage();
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-  if (is_array($coins)) {
-    return $coins;
-  } else {
-    $errorMessage = "There are no categories to display.";
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-}
-
 function getCategoryDetails($catID) {
   $conn = getConnection();
   
@@ -100,7 +21,6 @@ function getCategoryDetails($catID) {
     include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
   }
 }
-
 function getCoinDetails($coinID) {
   $conn = getConnection();
   
@@ -230,48 +150,4 @@ function addCoin($catID, $coinName, $coinDescription, $imageLink, $year) {
   }
 }
 
-function promoteUser($email) {
-$conn = getConnection();
-
-  try {
-    $sql = "UPDATE users SET isAdmin=true WHERE email=:email";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-    $stmt->execute();
-    $stmt->closeCursor();
-  } catch (PDOException $ex) {
-    $errorMessage = $ex->getMessage();
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-}
-
-function demoteUser($email) {
-$conn = getConnection();
-
-  try {
-    $sql = "UPDATE users SET isAdmin=false WHERE email=:email";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-    $stmt->execute();
-    $stmt->closeCursor();
-  } catch (PDOException $ex) {
-    $errorMessage = $ex->getMessage();
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-}
-
-function deleteUser($email) {
-  $conn = getConnection();
-
-  try {
-    $sql = "DELETE FROM users WHERE email=:email";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-    $stmt->execute();
-    $stmt->closeCursor();
-  } catch (PDOException $ex) {
-    $errorMessage = $ex->getMessage();
-    include $_SERVER['DOCUMENT_ROOT'] . '/errors/index.php';
-  }
-}
 ?>

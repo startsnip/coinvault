@@ -1,45 +1,53 @@
+<?php 
+if(!$_SESSION['isLoggedIn'] || !$_SESSION['isAdmin']) {
+  header('Location: /index.php');
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en-us">
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/modules/head.php'; ?>
-<body>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . '/modules/header.php'; ?>
-  <nav class="grid">
-    <ul class="unit whole align-center">
-      <li><a href="/admin/index.php?action=userAdmin" title="User Administration">User Administration</a></li>
-      <li><a href="/admin/index.php?action=contentAdmin" title="Content Administration">Content Administraton</a></li>
-    </ul>
-  </nav>
-  <main class="grid">
-    <div class="unit one-fifth"></div>
-    <div class="unit three-fifths">
-    <form action="/admin/index.php" method="POST" class="basic-grey">
-        <h1>New Category
-          <span>Enter the new category details below</span>
-          <span class="error"><?php if(!empty($errorMessage)){
-            echo "$errorMessage";
-          } ?></span>
-        </h1>
-        <input type="hidden" name="action" value="addCategory">
-        <label for="catName">
-          <span>Category Name:</span>
-          <input type="text" name="catName" id="catName" value="<?php echo $catName; ?>" required>
-        </label>
-        <label for="catDescription">
-          <span>Category Description:</span>
-          <input type="text" name="catDescription" id="catDescription" class="description" value="<?php echo $catDescription; ?>" required>
-        </label>
-        <label for="imageLink">
-          <span>Category Image (URL):</span>
-          <input type="text" name="imageLink" id="imageLink" value="<?php echo $catImage; ?>" required>
-        </label>
-        <label for="submit">
-          <span></span>
-          <button type="submit" name="submit" id="submit">Submit</button>
-        </label> 
-      </form>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/modules/header.php'; ?>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12">
+      <h4>Adding a new first-level category</h4>
+        <form action="/admin/index.php" method="POST" class="form-horizontal well">
+          <span class="error"><?php if(!empty($errorMessage)){echo "$errorMessage";} ?></span>
+          <input type="hidden" name="action" value="addCategory">
+          
+          <div class="form-group">
+            <label for="catName" class="col-sm-2 control-label">Category Title</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="catName" name="catName" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="catDescription" class="col-sm-2 control-label">Category Description</label>
+            <div class="col-sm-10">
+              <textarea class="form-control vresize" rows="10" id="catDescription" name="catDescription" required></textarea>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="imageLink" class="col-sm-2 control-label">Category Image (URL)</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="imageLink" name="imageLink" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="submit" name="submitMore" value="false" class="btn btn-primary">Save this category</button>
+              <button type="submit" name="submitMore" value="true" class="btn btn-primary">Save this category and add more</button>
+            </div>
+          </div>
+
+        </form>
+      </div>
     </div>
-    <div class="unit one-fifth"></div>
-  </main>
+  </div>
   <?php include $_SERVER['DOCUMENT_ROOT'] . '/modules/footer.php'; ?>
 </body>
 </html>
